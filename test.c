@@ -2,6 +2,7 @@
 #include <omp.h>
 #include <mpi.h>
 #include <math.h>
+#include <string.h>
 #include "./headers/beehive.h"
 #include "./headers/glider.h"
 #include "./headers/grower.h"
@@ -158,7 +159,7 @@ int main()
         insert_pattern(grower,A,PATTERN_ROW,PATTERN_COL,ROW,COL,1500,1500);
  
         memcpy(&C[N], &A[0], rows_per_proc * ROW * sizeof(int));//??
-        for (proc = 1; proc < size; proc++) {
+        for (int proc = 1; proc < num_procs; proc++) {
             //MPI_Send(&global_matrix[dir*ver*MAX_N], ver * MAX_N, MPI_INT, dir, 1, MPI_COMM_WORLD);
             MPI_Send(&A[proc*rows_per_proc*ROW], rows_per_proc * ROW, MPI_INT, proc, 1, MPI_COMM_WORLD);
         }
@@ -168,7 +169,7 @@ int main()
         //For each processor, there is a local matrix.
         MPI_Recv(&C[ROW], rows_per_proc * ROW, MPI_INT, 0, 1, MPI_COMM_WORLD, status);
     }
-    const double start,end;
+    double start,end;
     
     start=MPI_Wtime();
 
@@ -183,7 +184,7 @@ int main()
             MPI_Sendrecv(&C[ROW], ROW, MPI_INT, top_neighbour, 0,C, ROW, MPI_INT, top_neighbour, MPI_ANY_TAG,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
         // bottom
-        if (bot_neighbour < size)
+        if (bot_neighbour < num_procs)
         {
             MPI_Sendrecv(&C[(rows_per_proc)*ROW], ROW, MPI_INT, bot_neighbour, 0,&C[(rows_per_proc+1)*ROW], ROW, MPI_INT, bot_neighbour, MPI_ANY_TAG,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
@@ -200,8 +201,8 @@ int main()
     
     if (rank == 0) {
         memcpy(A, &C[ROW], rows_per_proc * ROW * sizeof(int));
-        for (proc = 1; proc < size; proc++) {
-            MPI_Recv(&A[proc*rows_per_proc*ROW], rows_per_proc*ROW, MPI_INT, proc, 1, MPI_COMM_WORLD, status);
+        for (proc = 1; proc < num_procs; proc++) {
+            MPI_Recv(&A[proc*rows_per_proc*ROW], rows_per_proc*ROW, MPI_INT, proc, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
         printf("Last Status:\n");
         display(A);
