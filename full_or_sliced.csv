@@ -1,0 +1,8 @@
+,Path,User,XSS,DoS,(vul type)
+1,f,s,f,s,
+2,s,f,s,f,
+3,s,s,f,f,
+4,f,f,s,s,
+5,f,s,s,f,
+6,s,f,f,s,
+(group),,,,,
